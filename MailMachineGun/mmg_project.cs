@@ -14,10 +14,12 @@ namespace MailMachineGun
 {
     public class MGConfig
     {
-        public String ApiKey;
         public String From;
         public String Name;
-        public String Domain;
+        public String Password;
+        public String Host;
+        public bool SSL;
+        public int Port; 
     }
 
     public class MMGProjectConfig
@@ -77,12 +79,13 @@ namespace MailMachineGun
             mail.Body = RenderTemplate(ProjectConfig.Body, Message.Fields);
             mail.BodyEncoding = System.Text.Encoding.UTF8;
 
-            client.Port = 587;
+            client.Port = MailConfig.Port;
+            client.EnableSsl = MailConfig.SSL;
             client.DeliveryMethod = SmtpDeliveryMethod.Network;
             client.UseDefaultCredentials = false;
-            client.Host = "smtp.mailgun.org";
+            client.Host = MailConfig.Host;
 
-            client.Credentials = new NetworkCredential(MailConfig.From, MailConfig.ApiKey);
+            client.Credentials = new NetworkCredential(MailConfig.From, MailConfig.Password);
 
             try
             {

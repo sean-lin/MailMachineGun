@@ -2,47 +2,43 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MailMachineGun
 {
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MailMachineGunMain : Window
     {
         private MGConfig MailConfig;
 
-        public static readonly DependencyProperty ProjectConfigProperty = DependencyProperty.Register("ProjectConfig", typeof(MMGProjectConfig), typeof(MainWindow));
+        public static readonly DependencyProperty ProjectConfigProperty = DependencyProperty.Register("ProjectConfig", typeof(MMGProjectConfig), typeof(MailMachineGunMain));
         public MMGProjectConfig ProjectConfig{
             get { return (MMGProjectConfig)GetValue(ProjectConfigProperty); }
             set { SetValue(ProjectConfigProperty, value); }
         }
 
-        public static readonly DependencyProperty MessagesProperty = DependencyProperty.Register("Messages", typeof(List<MessageEntry>), typeof(MainWindow));
+        public static readonly DependencyProperty MessagesProperty = DependencyProperty.Register("Messages", typeof(List<MessageEntry>), typeof(MailMachineGunMain));
         public List<MessageEntry> Messages
         {
             get { return (List<MessageEntry>)GetValue(MessagesProperty); }
             set { SetValue(MessagesProperty, value); }
         }
 
-        public MainWindow()
+        public MailMachineGunMain()
         {
             InitializeComponent();
-            MailConfig = ConfigFileConvertor.load<MGConfig>("mmgcfg.json");
+            try
+            {
+                MailConfig = ConfigFileConvertor.load<MGConfig>("mmgcfg.json");
+            }catch
+            {
+                MessageBox.Show("检查配置mmgcfg.json", "配置文件打不开", MessageBoxButton.OK);
+                Application.Current.Shutdown();
+            }
 
 
             if(LoadProjectConfig() == false)
@@ -87,6 +83,7 @@ namespace MailMachineGun
         private async void SendMail()
         {
             var Project = new MMGProject(MailConfig, ProjectConfig);
+            buttonSend.IsEnabled = false;
             progressBarSending.Value = 0;
             progressBarSending.Maximum  = Messages.Count;
             foreach(var entry in Messages)
@@ -94,6 +91,7 @@ namespace MailMachineGun
                 await Project.sendMessage(entry);
                 progressBarSending.Value++;
             }
+            buttonSend.IsEnabled = true;
             MessageBox.Show("发送完成！", "完成", MessageBoxButton.OK);
         }
 
